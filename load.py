@@ -47,6 +47,7 @@ def match_data(json_data, csv_data, output_file):
     total_matches = 0
 
     # Iterate over the playlists in the JSON data
+    filtered_playlists = []
     for index, playlist in enumerate(json_data["playlists"]):
         filtered_tracks = []
         for track in playlist["tracks"]:
@@ -62,7 +63,16 @@ def match_data(json_data, csv_data, output_file):
                 track["index_in_csv"] = int(csv_index)  # Add index to track metadata
                 filtered_tracks.append(track)
                 total_matches += 1
-        playlist["tracks"] = filtered_tracks
+        if filtered_tracks:  # If there are tracks in the playlist
+            # Append the playlist with filtered tracks
+            filtered_playlist = {
+                "name": playlist.get("name", ""),
+                "num_holdouts": playlist["num_holdouts"],
+                "pid": playlist["pid"],
+                "num_tracks": playlist["num_tracks"],
+                "tracks": filtered_tracks
+            }
+            filtered_playlists.append(filtered_playlist)
 
         # Update progress bar
         progress = (index + 1) / len(json_data["playlists"]) * 100
@@ -75,8 +85,9 @@ def match_data(json_data, csv_data, output_file):
     print("\nTotal matches found:", total_matches)
 
     # Write matched data to the output file
+    filtered_json_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
     with open(output_file, 'w') as f:
-        json.dump(json_data, f, indent=4)
+        json.dump(filtered_json_data, f, indent=4)
 
     print("Matched data saved to:", output_file)
 
@@ -96,7 +107,9 @@ def filter_playlists_with_tracks(json_data, output_file):
 
         filtered_tracks = []
         for track in playlist["tracks"]:
-            filtered_track = {"pos": track["pos"], "track_uri": track["track_uri"]}
+            # Extract track ID from track_uri
+            track_id = track["track_uri"].split(":")[-1]
+            filtered_track = {"pos": track["pos"], "track_uri": track_id}
             filtered_tracks.append(filtered_track)
 
         # Append filtered playlist along with other fields
@@ -132,6 +145,8 @@ def main():
 
 
     match_data(json_data_filtered, csv_data, "data/interesected.json")
+
+
 
 
 if __name__ == "__main__":
