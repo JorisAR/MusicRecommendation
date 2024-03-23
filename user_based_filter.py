@@ -1,33 +1,38 @@
-import json
-from collections import defaultdict
-from collections import Counter
-
-
 class UserBasedFilter:
     data = ""
 
     def __init__(self, data):
         self.data = data
 
-    def get_song_occurrences(self):
-        song_to_playlists = defaultdict(set)
+    def id_to_uri(self, id):
+        return "spotify:track:" + id
+
+    def get_shared_playlists(self, track_id):
+        playlists = []
         for playlist in self.data["playlists"]:
             for track in playlist["tracks"]:
-                song_to_playlists[track["track_uri"]].add(playlist["pid"])
+                if track["track_uri"] == self.id_to_uri(track_id):
+                    playlists.append(playlist)
+                    break
+        return playlists
 
-        return song_to_playlists
+    def count_song_occurrences(self, playlists):
+        song_counts = {}
+        for playlist in playlists:
+            for track in playlist["tracks"]:
+                if track["track_uri"] not in song_counts:
+                    song_counts[track["track_uri"]] = 0
+                song_counts[track["track_uri"]] += 1
+        return song_counts
 
-    def recommend_songs(self, playlist):
-        song_to_playlists = self.get_song_occurrences(self.data)
+    def recommend_songs(self, playlist, N):
+        shared_playlists = []
+        for track_uri in playlist:
+            shared_playlists.extend(self.get_shared_playlists(track_uri))
 
-        playlist_sets = [song_to_playlists[song] for song in playlist if song in song_to_playlists]
-        common_playlists = set.intersection(*playlist_sets)
+        song_counts = self.count_song_occurrences(shared_playlists)
+        sorted_songs = sorted(song_counts.items(), key=lambda item: item[1], reverse=True)
 
-        song_occurrences = Counter()
-        for playlist_id in common_playlists:
-            for track in self.data["playlists"][playlist_id]["tracks"]:
-                if track["track_uri"] not in playlist:
-                    song_occurrences[track["track_uri"]] += 1
-
-        recommendations = song_occurrences.most_common(10)
-        return recommendations
+        recommended_songs = [song[0] for song in sorted_songs if song[0] not in playlist][:N]
+        print(f"Recommended songs: {recommended_songs}")
+        return recommended_songs
