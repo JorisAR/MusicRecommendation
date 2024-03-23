@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import os
 
 def load_json_file(file_path):
     """
@@ -157,23 +158,40 @@ def match_data(json_data, csv_data, output_file, limit_progress=True):
 
     print("Matched data saved to:", output_file)
 
+def count_playlists(json_data):
+    """
+    Count the number of playlists in the JSON data.
+
+    Args:
+    - json_data (dict): The JSON data containing playlists.
+
+    Returns:
+    - int: The number of playlists.
+    """
+    if "playlists" in json_data:
+        return len(json_data["playlists"])
+    else:
+        return 0
 
 
 def main():
-    print("loading data")
-    json_data = load_million_set()
-    csv_data = load_90k_set()
+    if not os.path.exists("data/interesected.json"):
+        print("loading data")
+        json_data = load_million_set()
+        csv_data = load_90k_set()
 
-    # Filter playlists with zero tracks and save to a file
-    filter_playlists_with_tracks(json_data, "data/filtered_data.json")
-    
-    # Load the filtered JSON data
-    json_data_filtered = load_million_set("data/filtered_data.json")
+        # Filter playlists with zero tracks and save to a file
+        filter_playlists_with_tracks(json_data, "data/filtered_data.json")
+        
+        # Load the filtered JSON data
+        json_data_filtered = load_million_set("data/filtered_data.json")
 
-    # Match the filtered JSON data with the CSV data and save to a file
-    match_data(json_data_filtered, csv_data, "data/interesected.json", False)
+        # Match the filtered JSON data with the CSV data and save to a file
+        match_data(json_data_filtered, csv_data, "data/interesected.json", False)
 
-
+        # Count the number of datasets found in the final JSON
+        json_final = load_million_set("data/interesected.json")
+        print("amount of datasets found:", count_playlists(json_final))
 
 
 if __name__ == "__main__":
