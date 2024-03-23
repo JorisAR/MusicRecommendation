@@ -6,7 +6,9 @@ def load_json_file(file_path):
     return data
 
 def main():
-    file_path = "challenge_set.json"  # Replace 'your_file_path.json' with the actual file path
+    # https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset/data
+    # https://www.aicrowd.com/challenges/spotify-million-playlist-dataset-challenge/dataset_files
+    file_path = "data/challenge_set_millionplaylist.json"  
     data = load_json_file(file_path)
 
     print("Date:", data["date"])
