@@ -174,25 +174,64 @@ def count_playlists(json_data):
         return 0
 
 
+
+def remove_rows_not_in_list(csv_data, index_in_csv_list, output_file):
+    """
+    Remove rows from the CSV DataFrame that are not present in the given list of index_in_csv numbers and write to a new CSV file.
+
+    Args:
+    - csv_data (DataFrame): DataFrame containing the CSV data.
+    - index_in_csv_list (list): List of index_in_csv numbers to keep.
+    - output_file (str): Path to the output CSV file.
+
+    Returns:
+    - None
+    """
+    filtered_csv_data = csv_data[csv_data.index.isin(index_in_csv_list)]
+    filtered_csv_data.to_csv(output_file, index=False)
+    print("Filtered CSV data saved to:", output_file)
+
+def get_index_in_csv_list(json_data):
+    """
+    Get a list of index_in_csv numbers from the JSON data.
+
+    Args:
+    - json_data (dict): JSON data containing playlists and tracks.
+
+    Returns:
+    - index_in_csv_list (list): List of index_in_csv numbers.
+    """
+    index_in_csv_list = []
+
+    # Iterate over the playlists in the JSON data
+    for playlist in json_data["playlists"]:
+        for track in playlist["tracks"]:
+            index_in_csv = track.get("index_in_csv")
+            if index_in_csv is not None:
+                index_in_csv_list.append(index_in_csv)
+
+    return index_in_csv_list
+
 def main():
-    if not os.path.exists("data/interesected.json"):
-        print("loading data")
-        json_data = load_million_set()
-        csv_data = load_90k_set()
+    # if not os.path.exists("data/interesected.json"):
+    print("loading data")
+    json_data = load_million_set()
+    csv_data = load_90k_set()
 
-        # Filter playlists with zero tracks and save to a file
-        filter_playlists_with_tracks(json_data, "data/filtered_data.json")
-        
-        # Load the filtered JSON data
-        json_data_filtered = load_million_set("data/filtered_data.json")
+    # Filter playlists with zero tracks and save to a file
+    filter_playlists_with_tracks(json_data, "data/filtered_data.json")
+    
+    # Load the filtered JSON data
+    json_data_filtered = load_million_set("data/filtered_data.json")
 
-        # Match the filtered JSON data with the CSV data and save to a file
-        match_data(json_data_filtered, csv_data, "data/interesected.json", False)
+    # Match the filtered JSON data with the CSV data and save to a file
+    match_data(json_data_filtered, csv_data, "data/intersected.json", False)
 
-        # Count the number of datasets found in the final JSON
-        json_final = load_million_set("data/interesected.json")
-        print("amount of datasets found:", count_playlists(json_final))
+    # # Count the number of datasets found in the final JSON
+    json_final = load_million_set("data/intersected.json")
+    print("amount of datasets found:", count_playlists(json_final))
 
+    remove_rows_not_in_list(csv_data, get_index_in_csv_list(json_final), "data/csv_filtered.csv")
 
 if __name__ == "__main__":
     main()
