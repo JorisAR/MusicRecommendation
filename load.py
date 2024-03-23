@@ -53,11 +53,13 @@ def match_data(json_data, csv_data, output_file):
             track_id = track["track_uri"].split(":")[-1]  # Extract track ID
             if track_id in csv_track_ids:
                 # Track ID found in CSV data, add it to matched data
+                csv_index = csv_data[csv_data['track_id'] == track_id].index[0]  # Get index in CSV
                 matched_data.append({
                     "pos": track["pos"],
                     "track_uri": track_id,
-                    "index_id_in_csv": csv_data[csv_data['track_id'] == track_id].index.tolist()[0],  # Get index in CSV
+                    "index_in_csv": int(csv_index),  # Convert int64 to Python int
                 })
+                track["index_in_csv"] = int(csv_index)  # Add index to track metadata
                 filtered_tracks.append(track)
                 total_matches += 1
         playlist["tracks"] = filtered_tracks
@@ -78,11 +80,7 @@ def match_data(json_data, csv_data, output_file):
 
     print("Matched data saved to:", output_file)
 
-    # Write matched data to the output file
-    with open(output_file, 'w') as f:
-        json.dump(json_data, f, indent=4)
 
-    print("Matched data saved to:", output_file)
 
 
 
