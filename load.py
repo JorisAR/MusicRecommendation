@@ -26,9 +26,9 @@ def load_million_set():
     # print(data)
     return data
 
-def load_90k_set():
+def load_90k_set(datapath="data/dataset_90k.csv"):
     # Load the CSV file into a DataFrame
-    df = pd.read_csv("data/dataset_90k.csv")
+    df = pd.read_csv(datapath)
 
     # Display the DataFrame
     # print(df)
@@ -108,8 +108,9 @@ def main():
     filter_playlists_with_tracks(json_data, "data/filtered_data.json")
 
     
+    json_data_filtered = load_90k_set("data/filtered_data.json")
 
-    # match_data(json_data,csv_data)
+    match_data(json_data,csv_data)
 
 
 if __name__ == "__main__":
