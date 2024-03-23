@@ -6,10 +6,9 @@ def load_json_file(file_path):
         data = json.load(f)
     return data
 
-def load_million_set():
+def load_million_set(file_path="data/challenge_set_10k_millionplaylist.json"):
     # https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset/data
     # https://www.aicrowd.com/challenges/spotify-million-playlist-dataset-challenge/dataset_files
-    file_path = "data/challenge_set_10k_millionplaylist.json"  
     data = load_json_file(file_path)
 
     # print("Date:", data["date"])
@@ -34,32 +33,56 @@ def load_90k_set(datapath="data/dataset_90k.csv"):
     # print(df)
     return df
 
-def match_data(json_data, csv_data):
+import json
+
+def match_data(json_data, csv_data, output_file):
     print("Matching data")
 
-    total_playlists = len(json_data['playlists'])
+    matched_data = []
+
+    # Create a set to store track IDs from the CSV data for faster lookup
+    csv_track_ids = set(csv_data['track_id'])
+
+    # Initialize variables to track progress and matches
     total_matches = 0
 
-    for index, row in csv_data.iterrows():
-        track_id = row['track_id']
-        track_uri = "spotify:track:" + track_id
-        found_match = False
-        
-        # Check if track_uri exists in the JSON data
-        for playlist in json_data["playlists"]:
-            for track in playlist["tracks"]:
-                if track_uri == track["track_uri"]:
-                    total_matches += 1
-                    found_match = True
-                    break
-            if found_match:
-                break
+    # Iterate over the playlists in the JSON data
+    for index, playlist in enumerate(json_data["playlists"]):
+        filtered_tracks = []
+        for track in playlist["tracks"]:
+            track_id = track["track_uri"].split(":")[-1]  # Extract track ID
+            if track_id in csv_track_ids:
+                # Track ID found in CSV data, add it to matched data
+                matched_data.append({
+                    "pos": track["pos"],
+                    "track_uri": track_id,
+                    "index_id_in_csv": csv_data[csv_data['track_id'] == track_id].index.tolist()[0],  # Get index in CSV
+                })
+                filtered_tracks.append(track)
+                total_matches += 1
+        playlist["tracks"] = filtered_tracks
 
         # Update progress bar
-        progress = (index + 1) / len(csv_data) * 100
-        print(f"Progress: {progress:.2f}%, Matches found: {total_matches}\r", end='')
+        progress = (index + 1) / len(json_data["playlists"]) * 100
+        print(f"Progress: {progress:.2f}%, Matches found: {total_matches}", end='\r')
+        
+        # Break if progress > 1
+        if progress > 1:
+            break
 
     print("\nTotal matches found:", total_matches)
+
+    # Write matched data to the output file
+    with open(output_file, 'w') as f:
+        json.dump(json_data, f, indent=4)
+
+    print("Matched data saved to:", output_file)
+
+    # Write matched data to the output file
+    with open(output_file, 'w') as f:
+        json.dump(json_data, f, indent=4)
+
+    print("Matched data saved to:", output_file)
 
 
 
@@ -103,14 +126,14 @@ def main():
     print("loading data")
     json_data = load_million_set()
     csv_data = load_90k_set()
-    print("loaded data")
 
     filter_playlists_with_tracks(json_data, "data/filtered_data.json")
 
     
-    json_data_filtered = load_90k_set("data/filtered_data.json")
+    json_data_filtered = load_million_set("data/filtered_data.json")
 
-    match_data(json_data,csv_data)
+
+    match_data(json_data_filtered, csv_data, "data/interesected.json")
 
 
 if __name__ == "__main__":
