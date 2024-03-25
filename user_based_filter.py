@@ -5,7 +5,7 @@ class UserBasedFilter:
         self.data = data
 
     def id_to_uri(self, id):
-        return "spotify:track:" + id
+        return "" + id
 
     def get_shared_playlists(self, track_id):
         playlists = []

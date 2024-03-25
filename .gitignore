@@ -164,5 +164,4 @@ cython_debug/
 
 *.json
 
-data/challenge_set.json
-data/dataset.csv
+data/*
