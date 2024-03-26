@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import os
 
-def load_json_file(file_path):
+def load_json(file_path):
     """
     Load JSON data from a file.
 
@@ -17,20 +17,8 @@ def load_json_file(file_path):
     return data
 
 
-def load_million_set(file_path="data/challenge_set_10k_millionplaylist.json"):
-    """
-    Load the million playlist dataset from a JSON file.
 
-    Args:
-    - file_path (str): Path to the JSON file.
-
-    Returns:
-    - dict: Loaded JSON data.
-    """
-    data = load_json_file(file_path)
-    return data
-
-def load_90k_set(datapath="data/dataset_90k.csv"):
+def load_90k_set(datapath):
     """
     Load the 90k dataset from a CSV file.
 
@@ -45,7 +33,7 @@ def load_90k_set(datapath="data/dataset_90k.csv"):
     return df
 
 
-def filter_playlists_with_tracks(json_data, output_file):
+def filter_playlists_with_tracks(json_data, output_file, playlist_length_minimum=1, info=None):
     """
     Filter out playlists with zero tracks and remove unused fields.
 
@@ -62,7 +50,8 @@ def filter_playlists_with_tracks(json_data, output_file):
 
     for playlist in json_data["playlists"]:
         # Filter out playlists with zero tracks
-        if len(playlist["tracks"]) == 0:
+        if len(playlist["tracks"]) < playlist_length_minimum:
+            print("SKIPPING")
             continue
 
         filtered_tracks = []
@@ -75,22 +64,29 @@ def filter_playlists_with_tracks(json_data, output_file):
         # Append filtered playlist along with other fields
         filtered_playlist = {
             "name": playlist.get("name", ""),
-            "num_holdouts": playlist["num_holdouts"],
+            # "num_holdouts": playlist["num_holdouts"],
             "pid": playlist["pid"],
             "num_tracks": playlist["num_tracks"],
             "tracks": filtered_tracks
         }
         filtered_playlists.append(filtered_playlist)
 
-    filtered_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
+   # Construct the filtered data based on the presence of info dictionary
+    if info is not None:
+        # If info is provided, use it to construct the filtered data
+        filtered_data = {"info": info, "playlists": filtered_playlists}
+    else:
+        # Otherwise, use the original structure
+        filtered_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
 
+    # Dump the filtered data
     with open(output_file, 'w') as f:
         json.dump(filtered_data, f, indent=4)
-
+        
     print("Filtered data saved to:", output_file)
 
 
-def match_data(json_data, csv_data, output_file, limit_progress=True):
+def match_data(json_data, csv_data, output_file, limit_progress=True, info=None, playlist_length_minimum=1):
     """
     Match tracks from the JSON data with those in the CSV data.
 
@@ -116,7 +112,13 @@ def match_data(json_data, csv_data, output_file, limit_progress=True):
     filtered_playlists = []
     for index, playlist in enumerate(json_data["playlists"]):
         filtered_tracks = []
+
+        if len(playlist["tracks"]) < playlist_length_minimum:
+            print("SKIPPING")
+            continue
+
         for track in playlist["tracks"]:
+            
             track_id = track["track_uri"].split(":")[-1]  # Extract track ID
             if track_id in csv_track_ids:
                 # Track ID found in CSV data, add it to matched data
@@ -133,7 +135,7 @@ def match_data(json_data, csv_data, output_file, limit_progress=True):
             # Append the playlist with filtered tracks
             filtered_playlist = {
                 "name": playlist.get("name", ""),
-                "num_holdouts": playlist["num_holdouts"],
+                # "num_holdouts": playlist["num_holdouts"],
                 "pid": playlist["pid"],
                 "num_tracks": playlist["num_tracks"],
                 "tracks": filtered_tracks
@@ -152,7 +154,16 @@ def match_data(json_data, csv_data, output_file, limit_progress=True):
     print("\nTotal matches found:", total_matches)
 
     # Write matched data to the output file
-    filtered_json_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
+    # filtered_json_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
+
+   # Construct the filtered data based on the presence of info dictionary
+    if info is not None:
+        # If info is provided, use it to construct the filtered data
+        filtered_json_data = {"info": info, "playlists": filtered_playlists}
+    else:
+        # Otherwise, use the original structure
+        filtered_json_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
+
     with open(output_file, 'w') as f:
         json.dump(filtered_json_data, f, indent=4)
 
@@ -212,26 +223,72 @@ def get_index_in_csv_list(json_data):
 
     return index_in_csv_list
 
+createTestSet = False
+createEvalSet = True
+
 def main():
-    # if not os.path.exists("data/interesected.json"):
-    print("loading data")
-    json_data = load_million_set()
-    csv_data = load_90k_set()
 
-    # Filter playlists with zero tracks and save to a file
-    filter_playlists_with_tracks(json_data, "data/filtered_data.json")
-    
-    # Load the filtered JSON data
-    json_data_filtered = load_million_set("data/filtered_data.json")
+    if createTestSet:
+        print("Creating test dataset")
 
-    # Match the filtered JSON data with the CSV data and save to a file
-    match_data(json_data_filtered, csv_data, "data/intersected.json", False)
+        # if not os.path.exists("data/interesected.json"):
+        print("loading data")
+        json_data = load_json("data/challenge_set_10k_millionplaylist.json")
+        csv_data = load_90k_set("data/dataset_90k.csv")
 
-    # # Count the number of datasets found in the final JSON
-    json_final = load_million_set("data/intersected.json")
-    print("amount of datasets found:", count_playlists(json_final))
+        # Filter playlists with zero tracks and save to a file
+        filter_playlists_with_tracks(json_data, "data/filtered_data.json")
+        
+        # Load the filtered JSON data
+        json_data_filtered = load_json("data/filtered_data.json")
 
-    remove_rows_not_in_list(csv_data, get_index_in_csv_list(json_final), "data/csv_filtered.csv")
+        # Match the filtered JSON data with the CSV data and save to a file
+        match_data(json_data_filtered, csv_data, "data/intersected.json", False)
+
+        # # Count the number of datasets found in the final JSON
+        json_final = load_json("data/intersected.json")
+        print("amount of datasets found:", count_playlists(json_final))
+
+        remove_rows_not_in_list(csv_data, get_index_in_csv_list(json_final), "data/csv_filtered.csv")
+
+
+    if createEvalSet:
+        print("Creating evaluation dataset")
+
+        # Load the CSV data
+        print("Loading CSV data")
+        csv_data = load_90k_set("data/csv_filtered.csv")
+
+        # Specify the folder containing JSON files
+        jsons_folder = "data/completedataset"
+
+        # Iterate over the JSON files in the folder
+        for filename in os.listdir(jsons_folder):
+            if filename.endswith(".json"):
+                json_file_path = os.path.join(jsons_folder, filename)
+                print("Loading JSON file:", json_file_path)
+
+                # Load the JSON data
+                json_data = load_json(json_file_path)
+
+                # Extract base name of the JSON file without extension
+                base_name = os.path.splitext(filename)[0]
+
+                # Match the filtered JSON data with the CSV data and save to a file
+                output_file = f"data/complete_adjusted/{base_name}_adjusted.json"
+
+                # Filter playlists with zero tracks and save to a file
+                filter_playlists_with_tracks(json_data, output_file, 10, info=True)
+                
+                # Load the filtered JSON data
+                json_data_filtered = load_json(output_file)
+
+                # Match the filtered JSON data with the CSV data and save to a file
+                match_data(json_data_filtered, csv_data, output_file, False, info=True, playlist_length_minimum=10)
+
+                break
+
+
 
 if __name__ == "__main__":
     main()
