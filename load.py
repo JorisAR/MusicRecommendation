@@ -325,11 +325,13 @@ def main():
         # Specify the folder containing JSON files
         jsons_folder = "data/completedataset"
 
+        counter = 0
+
         # Iterate over the JSON files in the folder
         for filename in os.listdir(jsons_folder):
             if filename.endswith(".json"):
                 json_file_path = os.path.join(jsons_folder, filename)
-                print("Loading JSON file:", json_file_path)
+                print("\nLoading JSON file:", json_file_path)
 
                 # Load the JSON data
                 json_data = load_json(json_file_path)
@@ -351,8 +353,11 @@ def main():
 
                 json_data_filtered = load_json(output_file)
 
+                counter +=1
 
-                break
+                if counter == 5:
+                    break
+                # break
 
 
         print("split datasets into two")
