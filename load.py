@@ -283,15 +283,13 @@ def separate_playlists_by_name(json_final, jsons_folder):
 
 
 
-createTestSet = False
 createEvalSet = True
+dataslices_max = 10 # increase if you want more data
 
 def main():
-
-    if createTestSet:
+    if not os.path.exists("data/intersected.json"):
         print("Creating test dataset")
 
-        # if not os.path.exists("data/interesected.json"):
         print("loading data")
         json_data = load_json("data/challenge_set_10k_millionplaylist.json")
         csv_data = load_90k_set("data/dataset_90k.csv")
@@ -311,7 +309,6 @@ def main():
 
         remove_rows_not_in_list(csv_data, get_index_in_csv_list(json_final), "data/csv_filtered.csv")
 
-
     if createEvalSet:
 
         print("Creating evaluation dataset")
@@ -320,12 +317,10 @@ def main():
         print("Loading CSV data")
         csv_data = load_90k_set("data/csv_filtered.csv")
 
-
-
         # Specify the folder containing JSON files
         jsons_folder = "data/completedataset"
 
-        counter = 0
+        slice = 0
 
         # Iterate over the JSON files in the folder
         for filename in os.listdir(jsons_folder):
@@ -353,12 +348,11 @@ def main():
 
                 json_data_filtered = load_json(output_file)
 
-                counter +=1
+                slice += 1
 
-                if counter == 5:
+                if slice == dataslices_max:
+                    print("STOP loading, want more?: adjust the dataslices var")
                     break
-                # break
-
 
         print("split datasets into two")
         # load test json data
