@@ -116,14 +116,6 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
         # Initialize filtered tracks for the current playlist
         filtered_tracks = []
 
-
-
-        # if len(playlist["tracks"]) < playlist_length_minimum:
-        print(f"Skipping playlist '{playlist.get('name', 'Unnamed')}' with {len(playlist['tracks'])} tracks:")
-        print(playlist)  # Print the entire content of the playlist
-        print("\n\n\n")
-            # break
-
         # Iterate over the tracks in the playlist
         for track in playlist["tracks"]:
             track_id = track["track_uri"].split(":")[-1]  # Extract track ID
@@ -140,7 +132,7 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
                 total_matches += 1
         
         # If there are tracks in the playlist after filtering
-        if filtered_tracks:
+        if len(filtered_tracks) >= playlist_length_minimum:
             # Append the playlist with filtered tracks
             filtered_playlist = {
                 "name": playlist.get("name", ""),
@@ -174,6 +166,7 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
         json.dump(filtered_json_data, f, indent=4)
 
     print("Matched data saved to:", output_file)
+
 
 
 def count_playlists(json_data):
@@ -288,10 +281,10 @@ def main():
                 filter_playlists_with_tracks(json_data, output_file, playlist_length_minimum=10, info=True)
                 
                 # # Load the filtered JSON data
-                # json_data_filtered = load_json(output_file)
+                json_data_filtered = load_json(output_file)
 
                 # # Match the filtered JSON data with the CSV data and save to a file
-                # match_data(json_data_filtered, csv_data, output_file, False, info=True, playlist_length_minimum=10)
+                match_data(json_data_filtered, csv_data, output_file, False, info=True, playlist_length_minimum=10)
 
                 break
 
