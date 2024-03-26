@@ -51,7 +51,6 @@ def filter_playlists_with_tracks(json_data, output_file, playlist_length_minimum
     for playlist in json_data["playlists"]:
         # Filter out playlists with zero tracks
         if len(playlist["tracks"]) < playlist_length_minimum:
-            print("SKIPPING")
             continue
 
         filtered_tracks = []
@@ -94,6 +93,9 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
     - json_data (dict): JSON data containing playlists and tracks.
     - csv_data (pandas.DataFrame): CSV data containing track information.
     - output_file (str): Path to save the matched data.
+    - limit_progress (bool): Whether to limit the progress or not.
+    - info (dict): Additional information to include in the filtered data.
+    - playlist_length_minimum (int): Minimum length of playlists to consider.
 
     Returns:
     - None
@@ -111,14 +113,19 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
     # Iterate over the playlists in the JSON data
     filtered_playlists = []
     for index, playlist in enumerate(json_data["playlists"]):
+        # Initialize filtered tracks for the current playlist
         filtered_tracks = []
 
-        if len(playlist["tracks"]) < playlist_length_minimum:
-            print("SKIPPING")
-            continue
 
+
+        # if len(playlist["tracks"]) < playlist_length_minimum:
+        print(f"Skipping playlist '{playlist.get('name', 'Unnamed')}' with {len(playlist['tracks'])} tracks:")
+        print(playlist)  # Print the entire content of the playlist
+        print("\n\n\n")
+            # break
+
+        # Iterate over the tracks in the playlist
         for track in playlist["tracks"]:
-            
             track_id = track["track_uri"].split(":")[-1]  # Extract track ID
             if track_id in csv_track_ids:
                 # Track ID found in CSV data, add it to matched data
@@ -131,11 +138,12 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
                 track["index_in_csv"] = int(csv_index)  # Add index to track metadata
                 filtered_tracks.append(track)
                 total_matches += 1
-        if filtered_tracks:  # If there are tracks in the playlist
+        
+        # If there are tracks in the playlist after filtering
+        if filtered_tracks:
             # Append the playlist with filtered tracks
             filtered_playlist = {
                 "name": playlist.get("name", ""),
-                # "num_holdouts": playlist["num_holdouts"],
                 "pid": playlist["pid"],
                 "num_tracks": playlist["num_tracks"],
                 "tracks": filtered_tracks
@@ -153,10 +161,7 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
 
     print("\nTotal matches found:", total_matches)
 
-    # Write matched data to the output file
-    # filtered_json_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
-
-   # Construct the filtered data based on the presence of info dictionary
+    # Construct the filtered data based on the presence of info dictionary
     if info is not None:
         # If info is provided, use it to construct the filtered data
         filtered_json_data = {"info": info, "playlists": filtered_playlists}
@@ -164,10 +169,12 @@ def match_data(json_data, csv_data, output_file, limit_progress=True, info=None,
         # Otherwise, use the original structure
         filtered_json_data = {"date": json_data["date"], "version": json_data["version"], "playlists": filtered_playlists}
 
+    # Write matched data to the output file
     with open(output_file, 'w') as f:
         json.dump(filtered_json_data, f, indent=4)
 
     print("Matched data saved to:", output_file)
+
 
 def count_playlists(json_data):
     """
@@ -278,13 +285,13 @@ def main():
                 output_file = f"data/complete_adjusted/{base_name}_adjusted.json"
 
                 # Filter playlists with zero tracks and save to a file
-                filter_playlists_with_tracks(json_data, output_file, 10, info=True)
+                filter_playlists_with_tracks(json_data, output_file, playlist_length_minimum=10, info=True)
                 
-                # Load the filtered JSON data
-                json_data_filtered = load_json(output_file)
+                # # Load the filtered JSON data
+                # json_data_filtered = load_json(output_file)
 
-                # Match the filtered JSON data with the CSV data and save to a file
-                match_data(json_data_filtered, csv_data, output_file, False, info=True, playlist_length_minimum=10)
+                # # Match the filtered JSON data with the CSV data and save to a file
+                # match_data(json_data_filtered, csv_data, output_file, False, info=True, playlist_length_minimum=10)
 
                 break
 
