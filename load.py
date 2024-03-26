@@ -223,6 +223,66 @@ def get_index_in_csv_list(json_data):
 
     return index_in_csv_list
 
+def separate_playlists_by_name(json_final, jsons_folder):
+    """
+    Separate playlists by name based on whether they are present in json_final.
+
+    Args:
+    - json_final (dict): Loaded JSON data containing playlists.
+    - jsons_folder (str): Path to the folder containing JSON files of complete dataset.
+
+    Returns:
+    - None
+    """
+    included_folder = "data/complete_adjusted/included"
+    output_folder = "data/complete_adjusted/excluded"
+
+    # Ensure the output folders exist
+    os.makedirs(included_folder, exist_ok=True)
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Iterate over the JSON files in the folder
+    for filename in os.listdir(jsons_folder):
+        if filename.endswith(".json"):
+            json_file_path = os.path.join(jsons_folder, filename)
+            print("Processing JSON file:", json_file_path)
+
+            # Load the JSON data
+            json_data = load_json(json_file_path)
+
+            # Extract base name of the JSON file without extension
+            base_name = os.path.splitext(filename)[0]
+
+            # Initialize lists to store included and excluded playlists
+            included_playlists = []
+            excluded_playlists = []
+
+            # Iterate over the playlists in the JSON data
+            for playlist in json_data["playlists"]:
+                playlist_name = playlist.get("name", "")
+                if any(item["name"] == playlist_name for item in json_final["playlists"]):
+                    included_playlists.append(playlist)
+                else:
+                    excluded_playlists.append(playlist)
+
+            # Save included playlists to the included folder
+            included_output_file = os.path.join(included_folder, f"{base_name}_included.json")
+            with open(included_output_file, 'w') as f:
+                json.dump({"playlists": included_playlists}, f, indent=4)
+            print("Included playlists saved to:", included_output_file)
+
+            # Save excluded playlists to the output folder
+            output_output_file = os.path.join(output_folder, f"{base_name}_excluded.json")
+            with open(output_output_file, 'w') as f:
+                json.dump({"playlists": excluded_playlists}, f, indent=4)
+            print("Excluded playlists saved to:", output_output_file)
+
+            print("SPLIT incl, excl:", len(included_playlists), len(excluded_playlists))
+
+            print()  # Add an empty line for better readability
+
+
+
 createTestSet = False
 createEvalSet = True
 
@@ -253,11 +313,14 @@ def main():
 
 
     if createEvalSet:
+
         print("Creating evaluation dataset")
 
         # Load the CSV data
         print("Loading CSV data")
         csv_data = load_90k_set("data/csv_filtered.csv")
+
+
 
         # Specify the folder containing JSON files
         jsons_folder = "data/completedataset"
@@ -286,8 +349,19 @@ def main():
                 # # Match the filtered JSON data with the CSV data and save to a file
                 match_data(json_data_filtered, csv_data, output_file, False, info=True, playlist_length_minimum=10)
 
+                json_data_filtered = load_json(output_file)
+
+
                 break
 
+
+        print("split datasets into two")
+        # load test json data
+        print("load intersected test set")
+        json_final = load_json("data/intersected.json")
+        json_filtered = "data/complete_adjusted"
+        # split into two sets   
+        separate_playlists_by_name(json_final, json_filtered)
 
 
 if __name__ == "__main__":
