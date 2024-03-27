@@ -8,7 +8,7 @@ dataset_90k.csv --> download : https://www.kaggle.com/datasets/maharshipandya/-s
 
 Download the complete dataset ( https://www.aicrowd.com/challenges/spotify-million-playlist-dataset-challenge/dataset_files ) and put the slices in the data/completedataset folder
 
-
+Now run load.py
 
 useful data:
 
