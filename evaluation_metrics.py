@@ -102,5 +102,5 @@ class EvaluationMetrics:
         Returns:
         float: Mean Reciprocal Rank value.
         """
-        rr_list = [EvaluationMetrics.reciprocal_rank([a], r) for a, r in zip(actual, recommended)]
+        rr_list = [EvaluationMetrics.reciprocal_rank(a, r) for a, r in zip(actual, recommended)]
         return sum(rr_list) / len(rr_list) if rr_list else 0
