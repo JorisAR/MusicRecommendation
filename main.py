@@ -13,7 +13,9 @@ def load_json_file(file_path):
     return data
 
 def main():
-    playlist_file_path = "data/complete_adjusted/included/mpd.slice.1000-1999_adjusted_included.json"
+    # playlist_file_path = "data/complete_adjusted/included/mpd.slice.1000-1999_adjusted_included.json"
+    playlist_file_path = "data/intersected.json"
+    
     song_file_path = "data/csv_filtered.csv"
     
     playlist_data = load_json_file(playlist_file_path)
@@ -33,8 +35,8 @@ def main():
     playlist = playlists[10:]
 
     # Make recommendations using user-based and item-based filters
-    user_recommendations = user_based_filter.recommend_songs(playlist, 20)
-    item_recommendations = item_based_filter.recommend_songs(playlist, 20)
+    user_recommendations = user_based_filter.recommend_songs(playlist, 40)
+    item_recommendations = item_based_filter.recommend_songs(playlist, 40)
 
     print(type(user_recommendations))
     print(type(item_recommendations))
