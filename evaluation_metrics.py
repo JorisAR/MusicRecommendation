@@ -12,6 +12,7 @@ class EvaluationMetrics:
         float: Precision value.
         """
         if len(recommended) == 0:
+            print("List is empty")
             return 0
         relevant_items = set(actual) & set(recommended)
         return len(relevant_items) / len(recommended)

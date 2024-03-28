@@ -13,31 +13,42 @@ def load_json_file(file_path):
     return data
 
 def main():
-    playlist_file_path = "data/intersected.json"
+    playlist_file_path = "data/complete_adjusted/included/mpd.slice.1000-1999_adjusted_included.json"
     song_file_path = "data/csv_filtered.csv"
-
+    
     playlist_data = load_json_file(playlist_file_path)
     song_data = load_csv_file(song_file_path)
+    
+    testing_playlist_file_path = "data/complete_adjusted/included/mpd.slice.0-999_adjusted_included.json"
+    testing_playlist_data = load_json_file(testing_playlist_file_path)
 
     user_based_filter = UserBasedFilter(playlist_data)
     item_based_filter = ItemBasedFilter(song_data)
 
-    playlist = ["3W3KtDwAIg3mAruSpnfG3Q", "0zREtnLmVnt8KUJZZbSdla",
-                "4rHZZAmHpZrA3iH5zx8frV", "3MAgQuClHcAV8E9CbeBS6f", "4ybvIvKdvfkdsIYYAiaTiG", "5vjLSffimiIP26QG5WcN2K"]
 
-    user_recommendations = user_based_filter.recommend_songs(playlist, 10)
-    item_recommendations = item_based_filter.recommend_songs(playlist, 10)
+    # # Extract tracks from the testing playlist
+    playlists = [track["track_uri"] for track in testing_playlist_data["playlists"][0]["tracks"]]
     
-    user_based_precision = EvaluationMetrics.precision(playlist, user_recommendations)
-    user_based_recall = EvaluationMetrics.recall(playlist, user_recommendations)
-    user_based_f1_score = EvaluationMetrics.f1_score(playlist, user_recommendations)
-    user_based_map = EvaluationMetrics.average_precision(playlist, user_recommendations)
-    user_based_mrr = EvaluationMetrics.mean_reciprocal_rank([playlist], [user_recommendations])
+    # Subtract the first 5 numbers from the playlist
+    playlist = playlists[10:]
+
+    # Make recommendations using user-based and item-based filters
+    user_recommendations = user_based_filter.recommend_songs(playlist, 20)
+    item_recommendations = item_based_filter.recommend_songs(playlist, 20)
+
+    print(type(user_recommendations))
+    print(type(item_recommendations))
     
-    item_based_precision = EvaluationMetrics.precision(playlist, item_recommendations)
-    item_based_recall = EvaluationMetrics.recall(playlist, item_recommendations)
-    item_based_f1_score = EvaluationMetrics.f1_score(playlist, item_recommendations)
-    item_based_map = EvaluationMetrics.average_precision(playlist, item_recommendations)
+    user_based_precision = EvaluationMetrics.precision(playlists, user_recommendations)
+    user_based_recall = EvaluationMetrics.recall(playlists, user_recommendations)
+    user_based_f1_score = EvaluationMetrics.f1_score(playlists, user_recommendations)
+    user_based_map = EvaluationMetrics.average_precision(playlists, user_recommendations)
+    user_based_mrr = EvaluationMetrics.mean_reciprocal_rank([playlists], [user_recommendations])
+    
+    # item_based_precision = EvaluationMetrics.precision(testing_playlist_data, item_recommendations)
+    # item_based_recall = EvaluationMetrics.recall(playlist, item_recommendations)
+    # item_based_f1_score = EvaluationMetrics.f1_score(playlist, item_recommendations)
+    # item_based_map = EvaluationMetrics.average_precision(playlist, item_recommendations)
 
     
     print("User-based Precision:", user_based_precision)
@@ -46,10 +57,10 @@ def main():
     print("User-based MAP:", user_based_map)
     print("User-based MRR:", user_based_mrr)
     
-    print("Item-based Precision:", item_based_precision)
-    print("Item-based Recall:", item_based_recall)
-    print("Item-based F1 Score:", item_based_f1_score)
-    print("Item-based MAP:", item_based_map)
+    # print("Item-based Precision:", item_based_precision)
+    # print("Item-based Recall:", item_based_recall)
+    # print("Item-based F1 Score:", item_based_f1_score)
+    # print("Item-based MAP:", item_based_map)
 
     
     
