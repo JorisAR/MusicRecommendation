@@ -19,3 +19,9 @@ useful data:
 ++ mpd.slice.xxx-xxx_adjusted : playlists with length > 10 of songs that are only in csv_filtered
 ++ /excluded /included : mpd.slice.xxx-xxx_adjusted_{included/excluded}.json included folder is of playlists that are the intersected.json subset, the excluded is where the playlists are not in intersected.json 
 
+
+
+
+----------
+100k; 5416 playlist 2x
+10k ; 510 playlists 2x
