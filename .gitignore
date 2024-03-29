@@ -166,5 +166,4 @@ cython_debug/
 
 data/*
 
-
 !final_data/
