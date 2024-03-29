@@ -34,5 +34,5 @@ class UserBasedFilter:
         sorted_songs = sorted(song_counts.items(), key=lambda item: item[1], reverse=True)
 
         recommended_songs = [song[0] for song in sorted_songs if song[0] not in playlist][:N]
-        print(f"Recommended songs: {recommended_songs}")
+        #print(f"Recommended songs: {recommended_songs}")
         return recommended_songs
