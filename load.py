@@ -349,16 +349,10 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
     # Calculate the number of playlists for each file
     playlists_per_file = total_playlists // 2
     
-    # Adjust the number of playlists for each file if total playlists is odd
-    if total_playlists % 2 != 0:
-        playlists_per_file_1 = math.ceil(total_playlists / 2)
-        playlists_per_file_2 = total_playlists - playlists_per_file_1
-    else:
-        playlists_per_file_1 = playlists_per_file_2 = playlists_per_file
 
     # Split the playlists into two parts
-    playlists_file1 = playlists[:playlists_per_file_1]
-    playlists_file2 = playlists[playlists_per_file_1:]
+    playlists_file1 = playlists[:playlists_per_file]
+    playlists_file2 = playlists[playlists_per_file:playlists_per_file*2]
 
     # Save the split playlists to two separate files
     output_file1 = os.path.join(output_folder, output_1)
