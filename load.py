@@ -374,7 +374,7 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
         print("Difference in playlist count is too high. Manually adjust to maintain balance.")
 
 createEvalSet = True
-dataslices_max = 100000 # increase if you want more data
+dataslices_max = 100000 # increase if you want more data <<< you need enough data slices from the initial set >>
 
 def main():
     if not os.path.exists("data/intersected.json"):
