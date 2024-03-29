@@ -34,5 +34,6 @@ class ItemBasedFilter:
         recommended_songs = self.data.iloc[top_indices]
 
         #print(f"Recommended songs: {recommended_songs['track_id'].tolist()}")
+        recommended_songs = recommended_songs['track_id'].tolist()
 
         return recommended_songs
