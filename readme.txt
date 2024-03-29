@@ -20,8 +20,13 @@ useful data:
 ++ /excluded /included : mpd.slice.xxx-xxx_adjusted_{included/excluded}.json included folder is of playlists that are the intersected.json subset, the excluded is where the playlists are not in intersected.json 
 
 
+------------------
 
+You can run load.py and the final results are in the final_data folder. 
+csv file for information about songs
+testSet.json, EvalSet.json is a combination of all the included songs split into two sets
 
-----------
+-------------------
 100k; 5416 playlist 2x
 10k ; 510 playlists 2x
+------------------
