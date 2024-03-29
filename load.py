@@ -282,6 +282,82 @@ def separate_playlists_by_name(json_final, jsons_folder):
             print()  # Add an empty line for better readability
 
 
+def combine_included_playlists(included_folder, output_file):
+    """
+    Combine JSON files from the included folder into a single JSON file.
+
+    Args:
+    - included_folder (str): Path to the folder containing JSON files to be combined.
+    - output_file (str): Path to the output JSON file where combined playlists will be saved.
+
+    Returns:
+    - None
+    """
+
+    combined_playlists = []
+
+    # Ensure the output folder exists
+    output_folder = os.path.dirname(output_file)
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Iterate over the JSON files in the included folder
+    for filename in os.listdir(included_folder):
+        if filename.endswith(".json"):
+            json_file_path = os.path.join(included_folder, filename)
+            print("Processing JSON file:", json_file_path)
+
+            # Load the JSON data
+            with open(json_file_path, 'r') as f:
+                json_data = json.load(f)
+
+            # Add playlists from the current JSON file to the combined list
+            combined_playlists.extend(json_data["playlists"])
+
+    # Create a dictionary with the combined playlists
+    combined_data = {"playlists": combined_playlists}
+
+    # Save the combined data to a JSON file
+    with open(output_file, 'w') as f:
+        json.dump(combined_data, f, indent=4)
+
+    print("Combined playlists saved to:", output_file)
+
+def split_combined_playlists(input_file, output_folder, output_1, output_2):
+    """
+    Split the combined JSON file into two parts with approximately equal playlists.
+
+    Args:
+    - input_file (str): Path to the input JSON file containing combined playlists.
+    - output_folder (str): Path to the folder where the split JSON files will be saved.
+
+    Returns:
+    - None
+    """
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Load the combined JSON data
+    with open(input_file, 'r') as f:
+        combined_data = json.load(f)
+    
+    playlists = combined_data["playlists"]
+    total_playlists = len(playlists)
+    playlists_per_file = total_playlists // 2
+
+    # Calculate the number of playlists for each file
+    playlists_file1 = playlists[:playlists_per_file]
+    playlists_file2 = playlists[playlists_per_file:]
+
+    # Save the split playlists to two separate files
+    output_file1 = os.path.join(output_folder, output_1)
+    output_file2 = os.path.join(output_folder, output_2)
+
+    with open(output_file1, 'w') as f:
+        json.dump({"playlists": playlists_file1}, f, indent=4)
+    print("Split playlists saved to:", output_file1)
+
+    with open(output_file2, 'w') as f:
+        json.dump({"playlists": playlists_file2}, f, indent=4)
+    print("Split playlists saved to:", output_file2)
 
 createEvalSet = True
 dataslices_max = 10 # increase if you want more data
@@ -295,10 +371,10 @@ def main():
         csv_data = load_90k_set("data/dataset_90k.csv")
 
         # Filter playlists with zero tracks and save to a file
-        filter_playlists_with_tracks(json_data, "data/filtered_data.json")
+        filter_playlists_with_tracks(json_data, "data/intersected.json")
         
         # Load the filtered JSON data
-        json_data_filtered = load_json("data/filtered_data.json")
+        json_data_filtered = load_json("data/intersected.json")
 
         # Match the filtered JSON data with the CSV data and save to a file
         match_data(json_data_filtered, csv_data, "data/intersected.json", False)
@@ -361,6 +437,15 @@ def main():
         json_filtered = "data/complete_adjusted"
         # split into two sets   
         separate_playlists_by_name(json_final, json_filtered)
+
+        # combine the included datasets
+        included_folder = "data/complete_adjusted/included"
+        output_file = "data/complete_adjusted/included/included_combined.json"
+        combine_included_playlists(included_folder, output_file)
+
+        input_file = "data/complete_adjusted/included/included_combined.json"
+        output_folder = "final_data"
+        split_combined_playlists(input_file, output_folder, "testSet.json", "EvalSet.json")
 
 
 if __name__ == "__main__":
