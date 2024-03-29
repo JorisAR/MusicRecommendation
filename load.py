@@ -401,6 +401,7 @@ def main():
 
     if createEvalSet:
 
+
         print("Creating evaluation dataset")
 
         # Load the CSV data
@@ -411,6 +412,12 @@ def main():
         jsons_folder = "data/completedataset"
 
         slice = 0
+
+        complete_adjusted_folder = "data/complete_adjusted"
+        if os.path.exists(complete_adjusted_folder):
+            shutil.rmtree(complete_adjusted_folder)
+        os.makedirs(complete_adjusted_folder)
+
 
         # Iterate over the JSON files in the folder
         for filename in os.listdir(jsons_folder):
@@ -424,9 +431,12 @@ def main():
                 # Extract base name of the JSON file without extension
                 base_name = os.path.splitext(filename)[0]
 
-                complete_adjusted_folder = "data/complete_adjusted"
-                if not os.path.exists(complete_adjusted_folder):
-                    os.makedirs(complete_adjusted_folder)
+  
+                # complete_adjusted_folder = "data/complete_adjusted"
+                # if not os.path.exists(complete_adjusted_folder):
+                #     os.makedirs(complete_adjusted_folder)
+
+
                 # Match the filtered JSON data with the CSV data and save to a file
                 output_file = f"data/complete_adjusted/{base_name}_adjusted.json"
 
