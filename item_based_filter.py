@@ -27,10 +27,15 @@ class ItemBasedFilter:
             print("None of the songs in the playlist are in the data.")
             return
 
+
         mean_sim_scores = sim_matrix[indices].mean(axis=0)
 
         top_indices = mean_sim_scores.argsort()[-N:][::-1]
+        
 
         recommended_songs = self.data.iloc[top_indices]
 
-        print(f"Recommended songs: {recommended_songs['track_id'].tolist()}")
+        #print(f"Recommended songs: {recommended_songs['track_id'].tolist()}")
+        recommended_songs = recommended_songs['track_id'].tolist()
+
+        return recommended_songs
