@@ -1,6 +1,8 @@
 import json
 import pandas as pd
 import os
+import shutil
+import math
 
 def load_json(file_path):
     """
@@ -329,6 +331,8 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
     Args:
     - input_file (str): Path to the input JSON file containing combined playlists.
     - output_folder (str): Path to the folder where the split JSON files will be saved.
+    - output_1 (str): Filename for the first split JSON file.
+    - output_2 (str): Filename for the second split JSON file.
 
     Returns:
     - None
@@ -341,11 +345,20 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
     
     playlists = combined_data["playlists"]
     total_playlists = len(playlists)
-    playlists_per_file = total_playlists // 2
-
+    
     # Calculate the number of playlists for each file
-    playlists_file1 = playlists[:playlists_per_file]
-    playlists_file2 = playlists[playlists_per_file:]
+    playlists_per_file = total_playlists // 2
+    
+    # Adjust the number of playlists for each file if total playlists is odd
+    if total_playlists % 2 != 0:
+        playlists_per_file_1 = math.ceil(total_playlists / 2)
+        playlists_per_file_2 = total_playlists - playlists_per_file_1
+    else:
+        playlists_per_file_1 = playlists_per_file_2 = playlists_per_file
+
+    # Split the playlists into two parts
+    playlists_file1 = playlists[:playlists_per_file_1]
+    playlists_file2 = playlists[playlists_per_file_1:]
 
     # Save the split playlists to two separate files
     output_file1 = os.path.join(output_folder, output_1)
@@ -354,10 +367,17 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
     with open(output_file1, 'w') as f:
         json.dump({"playlists": playlists_file1}, f, indent=4)
     print("Split playlists saved to:", output_file1)
+    print("Number of playlists in", output_1, ":", len(playlists_file1))
 
     with open(output_file2, 'w') as f:
         json.dump({"playlists": playlists_file2}, f, indent=4)
     print("Split playlists saved to:", output_file2)
+    print("Number of playlists in", output_2, ":", len(playlists_file2))
+
+    # Check if the number of playlists in each split is too different
+    playlist_diff = abs(len(playlists_file1) - len(playlists_file2))
+    if playlist_diff > 1:
+        print("Difference in playlist count is too high. Manually adjust to maintain balance.")
 
 createEvalSet = True
 dataslices_max = 10 # increase if you want more data
@@ -410,6 +430,9 @@ def main():
                 # Extract base name of the JSON file without extension
                 base_name = os.path.splitext(filename)[0]
 
+                complete_adjusted_folder = "data/complete_adjusted"
+                if not os.path.exists(complete_adjusted_folder):
+                    os.makedirs(complete_adjusted_folder)
                 # Match the filtered JSON data with the CSV data and save to a file
                 output_file = f"data/complete_adjusted/{base_name}_adjusted.json"
 
@@ -445,7 +468,10 @@ def main():
 
         input_file = "data/complete_adjusted/included/included_combined.json"
         output_folder = "final_data"
-        split_combined_playlists(input_file, output_folder, "testSet.json", "EvalSet.json")
+        split_combined_playlists(input_file, output_folder, "TestSet.json", "EvalSet.json")
+
+        shutil.copy("data/csv_filtered.csv", "final_data/csv_filtered.csv")
+
 
 
 if __name__ == "__main__":
