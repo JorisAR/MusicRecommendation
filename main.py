@@ -42,6 +42,7 @@ def evaluate_playlist(playlist_data, N, user_based_filter, item_based_filter):
     item_based_recall = EvaluationMetrics.recall(playlist_tracks, item_recommendations)
     item_based_f1_score = EvaluationMetrics.f1_score(playlist_tracks, item_recommendations)
     item_based_map = EvaluationMetrics.average_precision(playlist_tracks, item_recommendations)
+    item_based_mrr = EvaluationMetrics.mean_reciprocal_rank(playlist_tracks, item_recommendations)
 
     return {
         "Playlist Name": playlist_data["name"],
@@ -53,7 +54,8 @@ def evaluate_playlist(playlist_data, N, user_based_filter, item_based_filter):
         "Item-based Precision": item_based_precision,
         "Item-based Recall": item_based_recall,
         "Item-based F1 Score": item_based_f1_score,
-        "Item-based MAP": item_based_map
+        "Item-based MAP": item_based_map,
+        "Item-based MRR": item_based_mrr
     }
 
 
@@ -97,8 +99,8 @@ def dataframe_mean(dataframe):
 
 def main():
     # set the number of tests, and the amount of songs sampled the playlist as input for the filters.
-    n_tests = 200
-    n_samples = 5
+    n_tests = 5416
+    n_samples = 10
     scores_df = run_test(n_tests, n_samples)
 
     print(dataframe_mean(scores_df))
