@@ -96,7 +96,10 @@ def dataframe_mean(dataframe):
 
 
 def main():
-    scores_df = run_test(100000, 5)
+    # set the number of tests, and the amount of songs sampled the playlist as input for the filters.
+    n_tests = 200
+    n_samples = 5
+    scores_df = run_test(n_tests, n_samples)
 
     print(dataframe_mean(scores_df))
 
