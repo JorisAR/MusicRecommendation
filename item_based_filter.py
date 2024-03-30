@@ -1,41 +1,30 @@
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.decomposition import PCA
+from sklearn.neighbors import NearestNeighbors
 
 class ItemBasedFilter:
-    data = ""
-
     def __init__(self, data):
         self.data = data
+        self.features = ['danceability', 'explicit', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']
+        self.nearest_neighbors = NearestNeighbors(n_neighbors=50, algorithm='auto', metric='cosine')
+        self.fit()
+
+    def fit(self):
+        X = self.data[self.features]
+        self.nearest_neighbors.fit(X)
 
     def recommend_songs(self, playlist, N):
-        data = self.data[~self.data['track_id'].isin(playlist)]
+        # Transform input playlist features
+        input_features = self.data[self.data['track_id'].isin(playlist)][self.features]
 
-        features = ['danceability', 'explicit', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness',
-                    'liveness', 'valence']
-        X = data[features]
+        if input_features.shape[0] == 0:
+            print("Input features are empty. Cannot recommend songs.")
+            return []
 
-        # Apply PCA and transform the data
-        pca = PCA(n_components=3)
-        X_pca = pca.fit_transform(X)
+        # Query NearestNeighbors for similar items
+        _, indices = self.nearest_neighbors.kneighbors(input_features)
 
-        sim_matrix = cosine_similarity(X_pca, X_pca)
+        # Get recommended songs
+        recommended_songs = self.data.iloc[indices[0]]['track_id'].tolist()
 
-        indices = [self.data.index[self.data['track_id'] == id][0] for id in playlist if
-                   id in self.data['track_id'].values]
+        recommended_songs = [song for song in recommended_songs if song not in playlist]
 
-        if not indices:
-            print("None of the songs in the playlist are in the data.")
-            return
-
-
-        mean_sim_scores = sim_matrix[indices].mean(axis=0)
-
-        top_indices = mean_sim_scores.argsort()[-N:][::-1]
-        
-
-        recommended_songs = self.data.iloc[top_indices]
-
-        #print(f"Recommended songs: {recommended_songs['track_id'].tolist()}")
-        recommended_songs = recommended_songs['track_id'].tolist()
-
-        return recommended_songs
+        return recommended_songs[:N]
