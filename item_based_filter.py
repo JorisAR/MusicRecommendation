@@ -1,5 +1,7 @@
 from sklearn.neighbors import NearestNeighbors
 
+from memory_profiler import profile
+
 class ItemBasedFilter:
     def __init__(self, data):
         self.data = data
@@ -11,6 +13,7 @@ class ItemBasedFilter:
         X = self.data[self.features]
         self.nearest_neighbors.fit(X)
 
+    @profile
     def recommend_songs(self, playlist, N):
         # Transform input playlist features
         input_features = self.data[self.data['track_id'].isin(playlist)][self.features]

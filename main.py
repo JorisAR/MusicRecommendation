@@ -1,5 +1,6 @@
 import json
 import time
+import os
 
 from user_based_filter import UserBasedFilter
 from item_based_filter import ItemBasedFilter
@@ -8,14 +9,26 @@ from evaluation_metrics import EvaluationMetrics
 import concurrent.futures
 
 
-def load_csv_file(file_path):
-    return pd.read_csv(file_path, nrows=50000)
+def load_csv_file(file_path, limit=50000):
+    return pd.read_csv(file_path, nrows=limit)
 
 
 def load_json_file(file_path):
     with open(file_path, 'r') as f:
         data = json.load(f)
     return data
+
+
+def load_json_folder(directory, limit):
+    combined_data = {"playlists": []}
+    for filename in os.listdir(directory):
+        if len(combined_data["playlists"]) >= limit:
+            break
+        if filename.endswith('.json'):
+            filepath = os.path.join(directory, filename)
+            data = load_json_file(filepath)
+            combined_data["playlists"].extend(data["playlists"])
+    return combined_data
 
 
 def evaluate_playlist(playlist_data, N, user_based_filter, item_based_filter):
@@ -64,7 +77,8 @@ def run_test_threaded(test_count=100, playlist_sample_size=5):
     start_time = time.time()
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(evaluate_playlist, playlist_data, playlist_sample_size, user_based_filter, item_based_filter)
+        futures = [executor.submit(evaluate_playlist, playlist_data, playlist_sample_size, user_based_filter,
+                                   item_based_filter)
                    for playlist_data in testing_playlist_data["playlists"][:test_count]]
 
         for future in concurrent.futures.as_completed(futures):
@@ -100,21 +114,39 @@ def dataframe_mean(dataframe):
 def main():
     # set the number of tests, and the amount of songs sampled the playlist as input for the filters.
     n_tests = 5416
+    n_tests = 1
     n_samples = 10
     scores_df = run_test(n_tests, n_samples)
 
-    print(dataframe_mean(scores_df))
+    # print(dataframe_mean(scores_df))
 
 
 if __name__ == '__main__':
-    playlist_file_path = "final_data/EvalSet.json"
-    song_file_path = "final_data/csv_filtered.csv"
+    playlist_file_path = "data/challenge_set.json"
+    playlist_folder_path = "data/completePlaylists"
+    song_file_path = "data/dataset_90k.csv"
     testing_playlist_file_path = "final_data/TestSet.json"
 
-    playlist_data = load_json_file(playlist_file_path)
-    song_data = load_csv_file(song_file_path)
+    # playlist_data = load_json_file(playlist_file_path)
+    limit = 1000
+    playlist_data = load_json_folder(playlist_folder_path, limit=limit)
+    song_data = load_csv_file(song_file_path, limit=limit)
     testing_playlist_data = load_json_file(testing_playlist_file_path)
 
     user_based_filter = UserBasedFilter(playlist_data)
     item_based_filter = ItemBasedFilter(song_data)
-    main()
+    # main()
+
+    print(f"SongDataShape:  {song_data.shape}")
+    playlists = playlist_data["playlists"]
+    print(f"PlaylistDataShape:  {len(playlists)}")
+
+    start_time = time.time()
+    item_based_filter.recommend_songs(["5aDpULK8MbJmHl42kR5KNI", "6ivkBaxvclVhwZDE2uwldj", "34dnNAUoIPcwnK0RtVMBWZ", "6IF2P93LkyW4GqDQu1yS7H", "38YgZVHPWOWsKrsCXz6JyP"], 40)
+    elapsed_time = time.time() - start_time
+    print(f"Item based execution time: {elapsed_time:.4f} seconds")
+
+    # start_time = time.time()
+    # user_based_filter.recommend_songs(["4rHZZAmHpZrA3iH5zx8frV", "1NpW5kyvO4XrNJ3rnfcNy3", "2GcSQZ1TmuRvqp3r4fWOZO", "6nHqns54LRqDNjeqKDF3v8", "1XGmzt0PVuFgQYYnV2It7A"], 40)
+    # elapsed_time = time.time() - start_time
+    # print(f"User based execution time: {elapsed_time:.4f} seconds")
