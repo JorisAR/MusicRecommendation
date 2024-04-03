@@ -35,3 +35,5 @@ user_means <- c(0.135238, 0.383914 , 0.182866,  0.145565)
 item_means <- c(0.014273,  0.039910,  0.019203,  0.006341)
 ttest_metrics <- t.test(user_means, item_means)
 ttest_metrics
+
+
