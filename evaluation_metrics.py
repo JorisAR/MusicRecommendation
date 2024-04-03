@@ -64,7 +64,7 @@ class EvaluationMetrics:
         Returns:
         float: Average precision value.
         """
-        if len(recommended) == 0:
+        if len(recommended) == 0 or len(actual) == 0:
             return 0
         sum_precision = 0
         num_songs = 0
