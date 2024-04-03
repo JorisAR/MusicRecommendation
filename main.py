@@ -98,12 +98,25 @@ def dataframe_mean(dataframe):
 
 
 def main():
-    # set the number of tests, and the amount of songs sampled the playlist as input for the filters.
-    n_tests = 5416
-    n_samples = 10
-    scores_df = run_test(n_tests, n_samples)
+    # set the number of tests
+    n_tests = 10
+    # set the list of samples
+    n_samples_list = [2, 4, 6, 8]
 
-    print(dataframe_mean(scores_df))
+    for n_samples in n_samples_list:
+        scores_df = run_test(n_tests, n_samples)
+
+        average_scores = dataframe_mean(scores_df)
+        print(average_scores)
+
+        # Save the DataFrame to a CSV file
+        csv_file_name = f"out/scores_{n_tests}_tests_at_{n_samples}_samples.csv"
+        scores_df.to_csv(csv_file_name, index=False)
+
+        # Save the average scores to a JSON file
+        json_file_name = f"out/average_scores_{n_tests}_tests_at_{n_samples}_samples.json"
+        average_scores.to_json(json_file_name)
+
 
 
 if __name__ == '__main__':
