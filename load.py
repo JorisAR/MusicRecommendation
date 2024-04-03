@@ -324,7 +324,7 @@ def combine_included_playlists(included_folder, output_file):
 
     print("Combined playlists saved to:", output_file)
 
-def split_combined_playlists(input_file, output_folder, output_1, output_2):
+def split_combined_playlists(input_file, output_folder, output_1, output_2,split=50):
     """
     Split the combined JSON file into two parts with approximately equal playlists.
 
@@ -347,12 +347,14 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
     total_playlists = len(playlists)
     
     # Calculate the number of playlists for each file
-    playlists_per_file = total_playlists // 2
+    # playlists_per_file = total_playlists // 2
+
+    playlist_file_1 = total_playlists // (100//split)
     
 
     # Split the playlists into two parts
-    playlists_file1 = playlists[:playlists_per_file]
-    playlists_file2 = playlists[playlists_per_file:playlists_per_file*2]
+    playlists_file1 = playlists[:playlist_file_1]
+    playlists_file2 = playlists[playlist_file_1:]
 
     # Save the split playlists to two separate files
     output_file1 = os.path.join(output_folder, output_1)
@@ -370,11 +372,11 @@ def split_combined_playlists(input_file, output_folder, output_1, output_2):
 
     # Check if the number of playlists in each split is too different
     playlist_diff = abs(len(playlists_file1) - len(playlists_file2))
-    if playlist_diff > 1:
-        print("Difference in playlist count is too high. Manually adjust to maintain balance.")
+    # if playlist_diff > 1:
+    #     print("Difference in playlist count is too high. Manually adjust to maintain balance.")
 
 createEvalSet = True
-dataslices_max = 100000 # increase if you want more data <<< you need enough data slices from the initial set >>
+dataslices_max = 100000000 # increase if you want more data <<< you need enough data slices from the initial set >>
 
 def main():
     if not os.path.exists("data/intersected.json"):
@@ -472,7 +474,7 @@ def main():
 
         input_file = "data/complete_adjusted/included/included_combined.json"
         output_folder = "final_data"
-        split_combined_playlists(input_file, output_folder, "TestSet.json", "EvalSet.json")
+        split_combined_playlists(input_file, output_folder, "TestSet.json", "EvalSet.json", 30)
 
         shutil.copy("data/csv_filtered.csv", "final_data/csv_filtered.csv")
 
